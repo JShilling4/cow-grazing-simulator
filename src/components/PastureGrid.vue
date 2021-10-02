@@ -1,28 +1,24 @@
 <template>
     <div
         class="pastureGrid"
-        :style="styleObject"
+        :style="gridStyleObject"
     >
         <div
-            v-for="(column, cIndex) in grid"
-            :key="cIndex"
+            v-for="(column, xIndex) in grid"
+            :key="xIndex"
             class="pastureRow"
         >
             <div
-                v-for="(row, rIndex) in column"
-                :key="rIndex"
+                v-for="(row, yIndex) in column"
+                :key="yIndex"
                 class="pastureTile"
-                :class="{ hasCow : cowPosition[0] === cIndex && cowPosition[1] === rIndex }"
+                :class="{ hasCow : cowPosition.x === xIndex && cowPosition.y === yIndex }"
             >
                 <span
-                    v-if="cowPosition[0] === cIndex && cowPosition[1] === rIndex"
+                    ref="cow"
+                    v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
                     class="cow"
-                    :class="{
-                        facingRight: cowDirection === 'E',
-                        facingLeft: cowDirection === 'W',
-                        facingDown: cowDirection === 'S',
-                        facingUp: cowDirection === 'N',
-                    }"
+                    :style="cowStyleObject"
                 ></span>
             </div>
 
@@ -43,24 +39,47 @@ export default {
             default: 5,
         },
         cowPosition: {
-            type: Array,
+            type: Object,
             default() {
-                return [2, 2];
+                return { x: 2, y: 2 };
             },
         },
         cowDirection: {
             type: String,
             default: "S",
-        }
+        },
+        currentInstruction: {
+            type: String,
+        },
+    },
+
+    computed: {
+        cowStyleObject() {
+            return {
+                transform: `rotate(${String(this.rotationDegree)}deg`,
+            };
+        },
     },
 
     data() {
         return {
             grid: [],
-            styleObject: {
+            rotationDegree: 0,
+            gridStyleObject: {
                 gridTemplateColumns: `repeat(${this.numberOfColumns}, minmax(100px, 1fr))`,
             },
         };
+    },
+
+    watch: {
+        cowDirection() {
+            if (this.currentInstruction === "l") {
+                this.rotationDegree = this.rotationDegree - 90;
+            }
+            if (this.currentInstruction === "r") {
+                this.rotationDegree = this.rotationDegree + 90;
+            }
+        },
     },
 
     methods: {
@@ -77,6 +96,25 @@ export default {
 
     mounted() {
         this.createGrid(this.numberOfRows, this.numberOfColumns);
+        // set initial cow direction
+        switch (this.cowDirection) {
+            case "N": {
+                this.rotationDegree = -180;
+                break;
+            }
+            case "S": {
+                this.rotationDegree = 0;
+                break;
+            }
+            case "E": {
+                this.rotationDegree = -90;
+                break;
+            }
+            case "W": {
+                this.rotationDegree = 90;
+                break;
+            }
+        }
     },
 };
 </script>
@@ -88,30 +126,20 @@ export default {
 
 .pastureTile {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 100px;
     border: 2px solid #fff;
     background-color: green;
 }
 
 .cow {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    transform-origin: center;
     height: 35px;
     width: 20px;
     background-color: white;
-    &.facingRight {
-        border-right: 4px solid black;
-    }
-    &.facingDown {
-        border-bottom: 4px solid black;
-    }
-    &.facingUp {
-        border-top: 4px solid black;
-    }
-    &.facingLeft {
-        border-left: 4px solid black;
-    }
+    border-bottom: 4px solid black;
+    transition: all 1s;
 }
 </style>
