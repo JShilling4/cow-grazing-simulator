@@ -30,11 +30,11 @@
 export default {
     name: "PastureGrid",
     props: {
-        numberOfRows: {
+        rows: {
             type: Number,
             default: 5,
         },
-        numberOfColumns: {
+        columns: {
             type: Number,
             default: 5,
         },
@@ -46,7 +46,7 @@ export default {
         },
         cowDirection: {
             type: String,
-            default: "S",
+            default: "s",
         },
         currentInstruction: {
             type: String,
@@ -56,7 +56,13 @@ export default {
     computed: {
         cowStyleObject() {
             return {
-                transform: `rotate(${String(this.rotationDegree)}deg`,
+                transform: `rotate(${String(this.rotationDegree)}deg)`,
+            };
+        },
+
+        gridStyleObject() {
+            return {
+                gridTemplateColumns: `repeat(${this.columns}, minmax(100px, 1fr))`,
             };
         },
     },
@@ -65,56 +71,66 @@ export default {
         return {
             grid: [],
             rotationDegree: 0,
-            gridStyleObject: {
-                gridTemplateColumns: `repeat(${this.numberOfColumns}, minmax(100px, 1fr))`,
-            },
         };
     },
 
     watch: {
         cowDirection() {
-            if (this.currentInstruction === "l") {
+            if (!this.currentInstruction) {
+                this.setInitialCowRotation();
+            } else if (this.currentInstruction === "l") {
                 this.rotationDegree = this.rotationDegree - 90;
-            }
-            if (this.currentInstruction === "r") {
+            } else if (this.currentInstruction === "r") {
                 this.rotationDegree = this.rotationDegree + 90;
             }
+        },
+
+        rows() {
+            this.createGrid(this.rows, this.columns);
+        },
+
+        columns() {
+            this.createGrid(this.rows, this.columns);
         },
     },
 
     methods: {
         createGrid(rows, columns) {
-            for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
+            this.grid = [];
+            for (let colIndex = 0; colIndex < columns; colIndex++) {
                 const row = [];
-                for (let colIndex = 0; colIndex < columns; colIndex++) {
+                for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
                     row.push(0);
                 }
                 this.grid.push(row);
             }
         },
+
+        setInitialCowRotation() {
+            switch (this.cowDirection) {
+                case "n": {
+                    this.rotationDegree = -180;
+                    break;
+                }
+                case "s": {
+                    this.rotationDegree = 0;
+                    break;
+                }
+                case "e": {
+                    this.rotationDegree = -90;
+                    break;
+                }
+                case "w": {
+                    this.rotationDegree = 90;
+                    break;
+                }
+            }
+        },
     },
 
     mounted() {
-        this.createGrid(this.numberOfRows, this.numberOfColumns);
-        // set initial cow direction
-        switch (this.cowDirection) {
-            case "N": {
-                this.rotationDegree = -180;
-                break;
-            }
-            case "S": {
-                this.rotationDegree = 0;
-                break;
-            }
-            case "E": {
-                this.rotationDegree = -90;
-                break;
-            }
-            case "W": {
-                this.rotationDegree = 90;
-                break;
-            }
-        }
+        this.createGrid(this.rows, this.columns);
+        this.setInitialCowRotation();
     },
 };
 </script>
@@ -122,6 +138,7 @@ export default {
 <style lang="scss" scoped>
 .pastureGrid {
     display: grid;
+    border: 6px solid rgb(107, 64, 7);
 }
 
 .pastureTile {
@@ -129,9 +146,10 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100px;
-    border: 2px solid #fff;
-    background-color: green;
+    height: 70px;
+    border: 1px solid rgba(255, 255, 255, 0.377);
+    background-color: rgb(89, 192, 89);
+    /* background-image: url("../assets/grass_tile3.jpg"); */
 }
 
 .cow {
