@@ -1,6 +1,5 @@
 <template>
     <div class="app">
-
         <div class="col1">
             <h1>Cow Grazing Simulator</h1>
             <!-- Board -->
@@ -10,6 +9,7 @@
                 :cow-direction="cowDirection"
                 :cow-position="cowPosition"
                 :current-instruction="currentInstruction"
+                :is-meal-time="isMealTime"
             />
 
             <!-- Simulator config -->
@@ -23,6 +23,7 @@
                             class="short"
                             v-model.number="cowPosition.x"
                             :disabled="simulatorIsRunning"
+                            @input="isMealTime = false"
                         />
                     </div>
                     <!-- Start Y -->
@@ -33,6 +34,7 @@
                             class="short"
                             v-model.number="cowPosition.y"
                             :disabled="simulatorIsRunning"
+                            @input="isMealTime = false"
                         />
                     </div>
                     <!-- Starting Direction -->
@@ -83,7 +85,7 @@
                         class="speechBubble"
                     />
                     <p class="speechText">
-                        {{ instructionToSpeech }}
+                        {{ !isMealTime ? instructionToSpeech : "Chow time!" }}
                     </p>
                 </div>
                 <img
@@ -114,9 +116,8 @@
                 </div>
             </div>
 
-            <p class="rule">Instructions must be comma separated</p>
+            <p class="rule">Instructions must be comma separated.</p>
         </div>
-
     </div>
 </template>
 
@@ -139,6 +140,7 @@ export default {
             simulatorIsRunning: false,
             errorIsShowing: false,
             errorText: "",
+            isMealTime: false,
         };
     },
 
@@ -177,6 +179,7 @@ export default {
             const inputsAreValid = this.validateInputs();
 
             if (inputsAreValid) {
+                this.isMealTime = false;
                 this.simulatorIsRunning = true;
 
                 this.instructionList.split(",").forEach((instruction, i) => {
@@ -196,31 +199,56 @@ export default {
                             }
                             case "f": {
                                 if (this.cowDirection === "n") {
-                                    this.cowPosition.y -= 1;
-                                }
-                                if (this.cowDirection === "s") {
-                                    this.cowPosition.y += 1;
-                                }
-                                if (this.cowDirection === "e") {
-                                    this.cowPosition.x += 1;
-                                }
-                                if (this.cowDirection === "w") {
-                                    this.cowPosition.x -= 1;
+                                    if (this.cowPosition.y - 1 >= 0) {
+                                        this.cowPosition.y -= 1;
+                                    }
+                                } else if (this.cowDirection === "s") {
+                                    if (
+                                        this.cowPosition.y + 1 <
+                                        this.gridRows
+                                    ) {
+                                        this.cowPosition.y += 1;
+                                    }
+                                } else if (this.cowDirection === "e") {
+                                    if (
+                                        this.cowPosition.x + 1 <
+                                        this.gridColumns
+                                    ) {
+                                        this.cowPosition.x += 1;
+                                    }
+                                } else if (this.cowDirection === "w") {
+                                    if (this.cowPosition.x - 1 >= 0) {
+                                        this.cowPosition.x -= 1;
+                                    }
                                 }
                                 break;
                             }
                             case "b": {
                                 if (this.cowDirection === "n") {
-                                    this.cowPosition.y += 1;
+                                    if (
+                                        this.cowPosition.y + 1 <
+                                        this.gridRows
+                                    ) {
+                                        this.cowPosition.y += 1;
+                                    }
                                 }
                                 if (this.cowDirection === "s") {
-                                    this.cowPosition.y -= 1;
+                                    if (this.cowPosition.y - 1 >= 0) {
+                                        this.cowPosition.y -= 1;
+                                    }
                                 }
                                 if (this.cowDirection === "e") {
-                                    this.cowPosition.x -= 1;
+                                    if (this.cowPosition.x - 1 >= 0) {
+                                        this.cowPosition.x -= 1;
+                                    }
                                 }
                                 if (this.cowDirection === "w") {
-                                    this.cowPosition.x += 1;
+                                    if (
+                                        this.cowPosition.x + 1 <
+                                        this.gridColumns
+                                    ) {
+                                        this.cowPosition.x += 1;
+                                    }
                                 }
                                 break;
                             }
@@ -230,6 +258,7 @@ export default {
                             setTimeout(() => {
                                 this.simulatorIsRunning = false;
                                 this.currentInstruction = null;
+                                this.isMealTime = true;
                             }, 2000);
                         }
                     }, (i + 1) * 2000);
@@ -277,10 +306,16 @@ export default {
             this.errorText = "";
             this.instructionList = this.instructionList.replaceAll(" ", "");
 
-            if (!this.cowPosition.x || this.cowPosition.x === "" || this.cowPosition.x > this.gridColumns-1) {
+            if (
+                this.cowPosition.x === "" ||
+                this.cowPosition.x > this.gridColumns - 1
+            ) {
                 this.toggleError("Please enter a valid starting X position.");
                 inputsAreValid = false;
-            } else if (!this.cowPosition.y || this.cowPosition.y === "" || this.cowPosition.y > this.gridRows-1) {
+            } else if (
+                this.cowPosition.y === "" ||
+                this.cowPosition.y > this.gridRows - 1
+            ) {
                 this.toggleError("Please enter a valid starting Y position.");
                 inputsAreValid = false;
             } else if (!this.cowDirection || this.cowDirection.trim() === "") {
@@ -290,7 +325,7 @@ export default {
                 inputsAreValid = false;
             } else if (!this.instructionList.match(/^[fblr](?:,[fblr])*,?$/)) {
                 this.toggleError(
-                    "Be make sure you have typed valid instructions and each single character instruction is separated with a comma."
+                    "Make sure you have typed valid instructions and each single character instruction is separated with a comma."
                 );
                 inputsAreValid = false;
             }

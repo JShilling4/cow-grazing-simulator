@@ -17,23 +17,33 @@
                 :class="{ hasCow : cowPosition.x === xIndex && cowPosition.y === yIndex }"
             >
                 <!-- Cow Wrapper -->
-                <div
-                    v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
-                    ref="cowContainer"
-                    class="cow-container"
-                >
-                    <!-- The Cow -->
+                <transition name="fade">
                     <div
-                        ref="cow"
-                        class="cow-graphic-container"
-                        :style="cowStyleObject"
+                        v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
+                        ref="cowContainer"
+                        class="cow-container"
                     >
-                        <img
-                            src="@/assets/cow_piece.png"
-                            class="cowFace"
-                        />
+                        <!-- The Cow -->
+                        <div
+                            ref="cow"
+                            class="cow-graphic-container"
+                            :style="cowStyleObject"
+                        >
+                            <img
+                                src="@/assets/cow_piece.png"
+                                class="cowFace"
+                            />
+                        </div>
                     </div>
-                </div>
+                </transition>
+
+                <transition name="fade">
+                    <img
+                        v-if="isMealTime && cowPosition.x === xIndex && cowPosition.y === yIndex"
+                        src="@/assets/grassTuft.png"
+                        class="grassTuft"
+                    />
+                </transition>
             </div>
         </div>
     </div>
@@ -64,6 +74,10 @@ export default {
         currentInstruction: {
             type: String,
         },
+        isMealTime: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     computed: {
@@ -78,7 +92,6 @@ export default {
                 gridTemplateColumns: `repeat(${this.columns}, minmax(70px, 1fr))`,
             };
         },
-
     },
 
     data() {
@@ -153,7 +166,7 @@ export default {
 .pastureGrid {
     display: grid;
     border: 6px solid rgb(107, 64, 7);
-    border-radius: 10px;;
+    border-radius: 10px;
 }
 
 .pastureTile {
@@ -173,6 +186,14 @@ export default {
     position: relative;
     z-index: 10;
     transition: transform 0.5s;
+}
+
+.grassTuft {
+    position: absolute;
+    z-index: 11;
+    right: 2rem;
+    top: 0;
+    width: 100px;
 }
 
 .cow-graphic-container {
