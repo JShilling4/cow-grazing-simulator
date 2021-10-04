@@ -2,8 +2,8 @@
     <div class="app">
         <div class="col1">
             <pasture-grid
-                :columns="+gridColumns"
-                :rows="+gridRows"
+                :columns="gridColumns"
+                :rows="gridRows"
                 :cow-direction="cowDirection"
                 :cow-position="cowPosition"
                 :current-instruction="currentInstruction"
@@ -11,24 +11,6 @@
 
             <div class="setup-container">
                 <div class="inputs-container">
-                    <!-- Columns -->
-                    <div class="input-group">
-                        <label>Columns:</label>
-                        <input
-                            type="text"
-                            class="short"
-                            v-model="gridColumns"
-                        />
-                    </div>
-                    <!-- Rows -->
-                    <div class="input-group">
-                        <label>Rows:</label>
-                        <input
-                            type="text"
-                            class="short"
-                            v-model="gridRows"
-                        />
-                    </div>
                     <!-- Start X -->
                     <div class="input-group">
                         <label>Start X:</label>
@@ -36,59 +18,95 @@
                             type="text"
                             class="short"
                             v-model.number="cowPosition.x"
+                            :disabled="simulatorIsRunning"
                         />
                     </div>
                     <!-- Start Y -->
                     <div class="input-group">
                         <label>Start Y:</label>
                         <input
-                            type="text"
+                            type="number"
                             class="short"
                             v-model.number="cowPosition.y"
+                            :disabled="simulatorIsRunning"
                         />
                     </div>
                     <!-- Starting Direction -->
                     <div class="input-group">
-                        <label>Start Direction:</label>
+                        <label>Facing:</label>
                         <input
                             type="text"
                             class="short"
                             v-model="computedDirection"
                             maxlength="1"
                             @input="currentInstruction = null"
+                            :disabled="simulatorIsRunning"
                         />
                     </div>
-
+                    <!-- Instructions -->
+                    <div class="input-group">
+                        <label>Instructions:</label>
+                        <input
+                            type="text"
+                            v-model="instructionList"
+                            :disabled="simulatorIsRunning"
+                        />
+                    </div>
+                    <button
+                        @click="runInstructions"
+                        :disabled="simulatorIsRunning"
+                    >{{ simulatorIsRunning ? "Bessie's on the move!" : "Send Bessie!" }}</button>
                 </div>
-                <!-- Instructions -->
-                <div class="input-group">
-                    <label>Instructions:</label>
-                    <input
-                        type="text"
-                        v-model="instructionList"
-                    />
-                </div>
-
-                <button @click="runInstructions">Run Instructions</button>
             </div>
+            <transition name="fade">
+                <div
+                    v-if="errorIsShowing"
+                    class="validationError"
+                >{{ errorText }}</div>
+            </transition>
         </div>
 
-        <div class="farmer-container">
-            <div class="bubble-container">
+        <div class="col2">
+            <div class="farmer-container">
+                <div class="bubble-container">
+                    <img
+                        src="@/assets/speechBubble.png"
+                        alt=""
+                        class="speechBubble"
+                    />
+                    <p class="speechText">
+                        {{ instructionToSpeech }}
+                    </p>
+                </div>
                 <img
-                    src="@/assets/speechBubble.png"
+                    src="@/assets/farmer.png"
                     alt=""
-                    class="speechBubble"
+                    class="farmer"
                 />
-                <p class="speechText">
-                    {{ instructionToSpeech }}
-                </p>
             </div>
-            <img
-                src="@/assets/farmer.png"
-                alt=""
-                class="farmer"
-            />
+
+            <div class="options">
+                <div class="block">
+                    <p>Facing options:</p>
+                    <ul>
+                        <li>n = north</li>
+                        <li>s = south</li>
+                        <li>e = east</li>
+                        <li>w = west</li>
+                    </ul>
+                </div>
+                <div class="block">
+                    <p>Instruction options:</p>
+                    <ul>
+                        <li>f = forward</li>
+                        <li>b = backward</li>
+                        <li>l = turn left</li>
+                        <li>r = turn right</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="rule">Instructions must be comma separated</p>
         </div>
 
     </div>
@@ -104,13 +122,15 @@ export default {
     },
     data() {
         return {
-            gridColumns: 7,
-            gridRows: 7,
-            cowPosition: { x: 3, y: 3 },
+            gridColumns: 12,
+            gridRows: 9,
+            cowPosition: { x: 2, y: 2 },
             cowDirection: "s",
             instructionList: "",
             currentInstruction: null,
             simulatorIsRunning: false,
+            errorIsShowing: false,
+            errorText: "",
         };
     },
 
@@ -133,7 +153,7 @@ export default {
                     return "Whoa! Back!";
                 }
                 case "l": {
-                    return "Turn left!";
+                    return "Turn left, Bessie!";
                 }
                 case "r": {
                     return "Turn right, Bessie!";
@@ -146,12 +166,15 @@ export default {
 
     methods: {
         runInstructions() {
-            const instructionsAreValid = this.validateInstructions();
-            if (instructionsAreValid) {
+            const inputsAreValid = this.validateInputs();
+
+            if (inputsAreValid) {
                 this.simulatorIsRunning = true;
+
                 this.instructionList.split(",").forEach((instruction, i) => {
                     setTimeout(() => {
                         this.currentInstruction = instruction;
+
                         switch (instruction) {
                             case "l": {
                                 this.cowDirection =
@@ -194,6 +217,7 @@ export default {
                                 break;
                             }
                         }
+
                         if (i === this.instructionList.split(",").length - 1) {
                             setTimeout(() => {
                                 this.simulatorIsRunning = false;
@@ -202,8 +226,6 @@ export default {
                         }
                     }, (i + 1) * 2000);
                 });
-            } else {
-                console.log("invalid");
             }
         },
 
@@ -236,60 +258,51 @@ export default {
             }
         },
 
-        validateInstructions() {
+        toggleError(text) {
+            this.errorIsShowing = true;
+            this.errorText = text;
+        },
+
+        validateInputs() {
+            let inputsAreValid = true;
+            this.errorIsShowing = false;
+            this.errorText = "";
             this.instructionList = this.instructionList.replaceAll(" ", "");
-            return this.instructionList.match(/^[fblr](?:,[fblr])*,?$/);
+
+            if (!this.cowPosition.x || this.cowPosition.x === "") {
+                this.toggleError("Please enter a starting X position.");
+                inputsAreValid = false;
+            } else if (!this.cowPosition.y || this.cowPosition.y === "") {
+                this.toggleError("Please enter a starting Y position.");
+                inputsAreValid = false;
+            } else if (!this.cowDirection || this.cowDirection.trim() === "") {
+                this.toggleError(
+                    "Please point Bessie in a valid direction. She doesn't want to assume."
+                );
+                inputsAreValid = false;
+            } else if (!this.instructionList.match(/^[fblr](?:,[fblr])*,?$/)) {
+                this.toggleError(
+                    "Be make sure you have selected a valid instruction and separate each instruction with a comma."
+                );
+                inputsAreValid = false;
+            }
+            return inputsAreValid;
         },
     },
 };
 </script>
 
 <style lang="scss">
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap");
+@import "./scss/base.scss";
+@import "./scss/typography.scss";
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+.app {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 2rem;
 }
 
-html {
-    font-size: 62.5%; // 1rem = 10px
-}
-
-body {
-    font-family: Roboto, sans-serif;
-    font-size: 1.6rem;
-}
-
-label {
-    display: block;
-    font-size: 1.4rem;
-    color: gray;
-}
-
-input {
-    height: 3rem;
-    border-radius: 3px;
-    border: 1px solid rgb(177, 177, 177);
-    padding-left: 1rem;
-    &.short {
-        width: 10rem;
-        /* text-align: center; */
-    }
-}
-
-button {
-    background-color: green;
-    color: #fff;
-    padding: 1rem;
-    border: none;
-    outline: none;
-    border-radius: 3px;
-    margin-top: 2rem;
-}
 .input-group {
-    margin-bottom: 1rem;
     margin-right: 2rem;
 }
 
@@ -297,30 +310,34 @@ button {
     display: flex;
 }
 
-.app {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 2rem;
-}
-
-.col1 {
-    width: 60%;
-}
-
 .setup-container {
     margin-top: 2rem;
 }
 
-.farmer-container {
+.validationError {
+    display: inline-block;
+    margin-top: 2rem;
+    background-color: rgb(231, 54, 54);
+    border-radius: 10px;
+    padding: 1rem;
+    color: #fff;
+}
+
+.col2 {
     position: relative;
     padding-right: 5%;
+    width: 60rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     .farmer {
         width: 30rem;
     }
+
     .bubble-container {
         position: absolute;
-        left: -15rem;
+        left: 0rem;
         .speechText {
             position: absolute;
             display: flex;
@@ -337,5 +354,26 @@ button {
             width: 20rem;
         }
     }
+
+    .options {
+        display: flex;
+        .block {
+            padding: 2rem;
+        }
+    }
+
+    .rule {
+        text-align: left;
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

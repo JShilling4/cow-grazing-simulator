@@ -20,15 +20,29 @@ label {
 }
 
 input {
+    font-family: Roboto, sans-serif;
     height: 4rem;
     border-radius: 3px;
     border: 1px solid rgb(177, 177, 177);
     padding-left: 1rem;
+    font-weight: 600;
     &.short {
         width: 5rem;
         text-align: center;
         padding-left: 0;
     }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 ul {
@@ -45,9 +59,18 @@ button {
     height: 4rem;
     cursor: pointer;
     align-self: flex-end;
-    transition: color .3s, background-color .3s;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: color 0.3s, background-color 0.3s;
     &:hover {
         background-color: var(--primary-button-color);
         color: #fff;
+        &:disabled {}
+    }
+    &:disabled, &:disabled:hover {
+        border-color:rgb(177, 177, 177);
+        color: rgb(177, 177, 177);
+        background-color: #fff;
+
     }
 }

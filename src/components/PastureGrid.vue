@@ -14,14 +14,24 @@
                 class="pastureTile"
                 :class="{ hasCow : cowPosition.x === xIndex && cowPosition.y === yIndex }"
             >
-                <span
-                    ref="cow"
-                    v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
-                    class="cow"
-                    :style="cowStyleObject"
-                ></span>
-            </div>
 
+                <div
+                    v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
+                    ref="cowContainer"
+                    class="cow-container"
+                >
+                    <div
+                        ref="cow"
+                        class="cow-graphic-container"
+                        :style="cowStyleObject"
+                    >
+                        <img
+                            src="@/assets/cow_piece.png"
+                            class="cowFace"
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -62,9 +72,10 @@ export default {
 
         gridStyleObject() {
             return {
-                gridTemplateColumns: `repeat(${this.columns}, minmax(100px, 1fr))`,
+                gridTemplateColumns: `repeat(${this.columns}, minmax(70px, 1fr))`,
             };
         },
+
     },
 
     data() {
@@ -139,6 +150,7 @@ export default {
 .pastureGrid {
     display: grid;
     border: 6px solid rgb(107, 64, 7);
+    border-radius: 10px;;
 }
 
 .pastureTile {
@@ -147,17 +159,38 @@ export default {
     align-items: center;
     justify-content: center;
     height: 70px;
-    border: 1px solid rgba(255, 255, 255, 0.377);
+    width: 70px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     background-color: rgb(89, 192, 89);
-    /* background-image: url("../assets/grass_tile3.jpg"); */
+    background-image: url("../assets/grass_tile3.jpg");
+    overflow: visible;
 }
 
-.cow {
+.cow-container {
+    position: relative;
+    z-index: 10;
+    transition: transform 0.5s;
+}
+
+.cow-graphic-container {
+    position: relative;
+    z-index: 10;
     transform-origin: center;
-    height: 35px;
-    width: 20px;
+    height: 45px;
+    width: 35px;
     background-color: white;
+    border-radius: 8px;
     border-bottom: 4px solid black;
     transition: all 1s;
+    .cowFace {
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 55px;
+    }
+    img {
+        transition: all 1s;
+    }
 }
 </style>
