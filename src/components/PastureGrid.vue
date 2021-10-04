@@ -3,23 +3,26 @@
         class="pastureGrid"
         :style="gridStyleObject"
     >
+        <!-- Row -->
         <div
             v-for="(column, xIndex) in grid"
             :key="xIndex"
             class="pastureRow"
         >
+            <!-- Tile -->
             <div
                 v-for="(row, yIndex) in column"
                 :key="yIndex"
                 class="pastureTile"
                 :class="{ hasCow : cowPosition.x === xIndex && cowPosition.y === yIndex }"
             >
-
+                <!-- Cow Wrapper -->
                 <div
                     v-if="cowPosition.x === xIndex && cowPosition.y === yIndex"
                     ref="cowContainer"
                     class="cow-container"
                 >
+                    <!-- The Cow -->
                     <div
                         ref="cow"
                         class="cow-graphic-container"

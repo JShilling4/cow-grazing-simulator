@@ -1,6 +1,9 @@
 <template>
     <div class="app">
+
         <div class="col1">
+            <h1>Cow Grazing Simulator</h1>
+            <!-- Board -->
             <pasture-grid
                 :columns="gridColumns"
                 :rows="gridRows"
@@ -9,6 +12,7 @@
                 :current-instruction="currentInstruction"
             />
 
+            <!-- Simulator config -->
             <div class="setup-container">
                 <div class="inputs-container">
                     <!-- Start X -->
@@ -52,12 +56,15 @@
                             :disabled="simulatorIsRunning"
                         />
                     </div>
+                    <!-- Start Button -->
                     <button
                         @click="runInstructions"
                         :disabled="simulatorIsRunning"
                     >{{ simulatorIsRunning ? "Bessie's on the move!" : "Send Bessie!" }}</button>
                 </div>
             </div>
+
+            <!-- Validation error -->
             <transition name="fade">
                 <div
                     v-if="errorIsShowing"
@@ -66,6 +73,7 @@
             </transition>
         </div>
 
+        <!-- Farmer & Simulator info -->
         <div class="col2">
             <div class="farmer-container">
                 <div class="bubble-container">
@@ -269,11 +277,11 @@ export default {
             this.errorText = "";
             this.instructionList = this.instructionList.replaceAll(" ", "");
 
-            if (!this.cowPosition.x || this.cowPosition.x === "") {
-                this.toggleError("Please enter a starting X position.");
+            if (!this.cowPosition.x || this.cowPosition.x === "" || this.cowPosition.x > this.gridColumns-1) {
+                this.toggleError("Please enter a valid starting X position.");
                 inputsAreValid = false;
-            } else if (!this.cowPosition.y || this.cowPosition.y === "") {
-                this.toggleError("Please enter a starting Y position.");
+            } else if (!this.cowPosition.y || this.cowPosition.y === "" || this.cowPosition.y > this.gridRows-1) {
+                this.toggleError("Please enter a valid starting Y position.");
                 inputsAreValid = false;
             } else if (!this.cowDirection || this.cowDirection.trim() === "") {
                 this.toggleError(
@@ -282,7 +290,7 @@ export default {
                 inputsAreValid = false;
             } else if (!this.instructionList.match(/^[fblr](?:,[fblr])*,?$/)) {
                 this.toggleError(
-                    "Be make sure you have selected a valid instruction and separate each instruction with a comma."
+                    "Be make sure you have typed valid instructions and each single character instruction is separated with a comma."
                 );
                 inputsAreValid = false;
             }
